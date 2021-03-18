@@ -133,7 +133,7 @@ static void handle_tap_tempo(uint8_t actuator_id)
     uint32_t delta = now - g_tap_tempo[actuator_id].time;
     g_tap_tempo[actuator_id].time = now;
 
-    cc_assignment_t *assignment = cc_assignment_get(actuator_id);
+    cc_assignment_t *assignment = g_current_assignment[actuator_id];
 
     // checks if delta almost suits maximum allowed value
     if ((delta > g_tap_tempo[actuator_id ].max) &&
@@ -210,9 +210,7 @@ static void turn_off_leds(void)
 {
     for (int i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
-        hw_led_set(i, LED_R, LED_OFF,0,0);
-        hw_led_set(i, LED_G, LED_OFF,0,0);
-        hw_led_set(i, LED_B, LED_OFF,0,0);
+        hw_led_set(i, LED_W, LED_OFF, 0, 0);
     }
 }
 
@@ -231,17 +229,17 @@ static void clear_all(void)
 
 static void update_leds(cc_assignment_t *assignment)
 {
-    if ((assignment->mode & CC_MODE_COLOURED && CC_MODE_OPTIONS))
+    if ((assignment->mode & CC_MODE_COLOURED) && (assignment->mode & CC_MODE_OPTIONS))
     {
-        uint8_t color = (assignment->list_index % LED_COLOURS_AMOUNT);
+        hw_led_set(assignment->actuator_id, LED_R, LED_OFF, 0, 0);
+        hw_led_set(assignment->actuator_id, LED_G, LED_OFF, 0, 0);
+        hw_led_set(assignment->actuator_id, LED_B, LED_OFF, 0, 0);
 
-        hw_led_set(assignment->actuator_id, (color == 0) ? LED_W : color - 1, LED_OFF, 0, 0);
+        const uint8_t color = (assignment->list_index % LED_COLOURS_AMOUNT);
         hw_led_set(assignment->actuator_id, color, LED_ON, 0, 0);
     }
-    else if (assignment->mode & (CC_MODE_TRIGGER | CC_MODE_OPTIONS))
-    {
+    else if ((assignment->mode & CC_MODE_TRIGGER) || (assignment->mode & CC_MODE_OPTIONS))
         hw_led_set(assignment->actuator_id, LED_G, LED_ON, 0, 0);
-    }
     else if (assignment->mode & CC_MODE_TOGGLE)
         hw_led_set(assignment->actuator_id, LED_R, assignment->value ? LED_ON : LED_OFF,0,0);
     else if (assignment->mode & CC_MODE_TAP_TEMPO)
@@ -277,7 +275,7 @@ static void update_lcds(cc_assignment_t *assignment)
         for (int j = 0; j < item_label->size && i < sizeof(buffer); j++, i++)
             buffer[i] = item_label->text[j];
     }
-else if (assignment->mode & CC_MODE_TAP_TEMPO)
+    else if (assignment->mode & CC_MODE_TAP_TEMPO)
     {
         // separator
         buffer[i++] = ':';
@@ -367,11 +365,8 @@ static void events_cb(void *arg)
             clear_all();
         }
 
-        int *act_id = event->data;
-        int actuator_id = *act_id;
-
-        cc_assignment_t *assignment = cc_assignment_get(actuator_id);
-        g_current_assignment[actuator_id] = assignment;
+        cc_assignment_t *assignment = event->data;
+        g_current_assignment[assignment->actuator_id] = assignment;
 
         if (assignment->mode & CC_MODE_TAP_TEMPO)
         {
@@ -427,17 +422,15 @@ static void events_cb(void *arg)
         waiting_message(actuator_id);
 
         // turn off leds
-        hw_led_set(actuator_id, LED_R, LED_OFF,0,0);
-        hw_led_set(actuator_id, LED_G, LED_OFF,0,0);
-        hw_led_set(actuator_id, LED_B, LED_OFF,0,0);
+        hw_led_set(actuator_id, LED_W, LED_OFF, 0, 0);
 
         //properly clear all values
         g_tap_tempo[actuator_id].time = 0;
         g_tap_tempo[actuator_id].max = 0;
         g_tap_tempo[actuator_id].state = TT_INIT;
 
-        //clear mode
-        g_current_assignment[actuator_id]->mode = CC_MODE_MOMENTARY;
+        //clear assignment mode
+        g_current_assignment[actuator_id]->mode = 0;
     }
 
     else if (event->id == CC_EV_UPDATE)
@@ -450,7 +443,11 @@ static void events_cb(void *arg)
     else if (event->id == CC_CMD_SET_VALUE)
     {
         cc_set_value_t *set_value = event->data;
-        cc_assignment_t *assignment = cc_assignment_get(set_value->actuator_id);
+        cc_assignment_t *assignment = g_current_assignment[set_value->actuator_id];
+
+        if (assignment->mode & CC_MODE_OPTIONS)
+            assignment->list_index = set_value->value;
+
         assignment->value = set_value->value;
         update_leds(assignment);
         update_lcds(assignment);
