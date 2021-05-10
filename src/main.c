@@ -505,6 +505,24 @@ int main(void)
         cc_device_actuator_add(device, actuator);
     }
 
+    //create groups
+    for (int i = 0; i < FOOTSWITCHES_COUNT; i+=2)
+    {
+        char name [16] = {"Group #&#"};
+        name[7] = '1' + i;
+        name[9] = name[7] + 1;
+        name[10] = 0;
+
+        cc_actuatorgroup_config_t actuatorgroup_config;
+        actuatorgroup_config.name = name;
+        actuatorgroup_config.actuator_1 = i;
+        actuatorgroup_config.actuator_2 = i + 1;
+
+        cc_actuatorgroup_t *actuatorgroup = cc_actuatorgroup_new(&actuatorgroup_config);
+        cc_device_actuatorgroup_add(device, actuatorgroup);
+
+    }
+
     // init serial
     g_serial = serial_init(CC_BAUD_RATE_FALLBACK, serial_recv);
 

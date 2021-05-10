@@ -12,6 +12,8 @@
 #define CC_MAX_DEVICES          1
 // maximum number of actuators that can be created per device
 #define CC_MAX_ACTUATORS        4
+// maximum number of actuator gorups that can be created per deivice
+#define CC_MAX_ACTUATORGROUPS   2
 // maximum number of assignments that can be created per actuator
 #define CC_MAX_ASSIGNMENTS      1
 // maximum number of options items that can be created per device
