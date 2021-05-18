@@ -505,7 +505,7 @@ int main(void)
         cc_device_actuator_add(device, actuator);
     }
 
-    //create groups
+    // create groups
     for (int i = 0; i < FOOTSWITCHES_COUNT; i+=2)
     {
         char name [16] = {"Group #&#"};
@@ -520,7 +520,6 @@ int main(void)
 
         cc_actuatorgroup_t *actuatorgroup = cc_actuatorgroup_new(&actuatorgroup_config);
         cc_device_actuatorgroup_add(device, actuatorgroup);
-
     }
 
     // init serial
