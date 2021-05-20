@@ -506,7 +506,7 @@ int main(void)
     }
 
     // create groups
-    for (int i = 0; i < FOOTSWITCHES_COUNT; i+=2)
+    for (int i = 0; i < CC_MAX_ACTUATORGROUPS; i++)
     {
         char name [16] = {"Group #x&y"};
         name[7] = '1' + i;
