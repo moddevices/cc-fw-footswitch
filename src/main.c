@@ -508,7 +508,7 @@ int main(void)
     // create groups
     for (int i = 0; i < FOOTSWITCHES_COUNT; i+=2)
     {
-        char name [16] = {"Group #&#"};
+        char name [16] = {"Group #x&y"};
         name[7] = '1' + i;
         name[9] = name[7] + 1;
         name[10] = 0;
