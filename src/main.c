@@ -453,6 +453,23 @@ static void events_cb(void *arg)
         update_lcds(assignment);
     }
 
+    else if (event->id == CC_CMD_UPDATE_LIST)
+    {
+        cc_list_update_t *update_list = event->data;
+        cc_assignment_t *assignment = g_current_assignment[update_list->actuator_id];
+
+        options_list_destroy(assignment->list_items);
+
+        assignment->value = update_list->value;
+        assignment->list_count = update_list->list_count;
+        assignment->list_items = update_list->list_items;
+
+        //todo, always in the middle?
+        assignment->list_index = 2;
+
+        update_lcds(assignment);
+    }
+
     else if (event->id == CC_EV_MASTER_RESETED)
     {
         clear_all();
